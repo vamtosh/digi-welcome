@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { HybridInput } from '@/components/HybridInput';
 import { useLocation } from 'react-router-dom';
 import { openaiService } from '@/lib/openai';
 import { Badge } from '@/components/ui/badge';
@@ -207,12 +208,13 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
 
         <div className="border-t p-4">
           <div className="flex gap-2">
-            <Input
+            <HybridInput
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={setInputValue}
               onKeyPress={handleKeyPress}
               placeholder="Ask me anything..."
               disabled={isLoading}
+              mode="general"
               className="flex-1"
             />
             <Button

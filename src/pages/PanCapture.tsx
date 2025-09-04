@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ProgressHeader } from "@/components/ProgressHeader";
+import { HybridInput } from "@/components/HybridInput";
 import { 
   Keyboard, 
   Mic, 
@@ -321,11 +322,11 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
                 <CardContent className="p-6 space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="pan">PAN Number</Label>
-                    <Input
-                      id="pan"
+                    <HybridInput
                       value={panValue}
-                      onChange={(e) => handlePanChange(e.target.value)}
-                      placeholder="ABCDE1234F"
+                      onChange={handlePanChange}
+                      placeholder="Type or speak your PAN (ABCDE1234F)"
+                      mode="pan"
                       className={`font-mono ${isValid ? 'border-success' : panValue ? 'border-destructive' : ''}`}
                     />
                     {panValue && (
@@ -346,6 +347,8 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Format: 5 letters + 4 numbers + 1 letter (e.g., ABCDE1234F)
+                    <br />
+                    💡 You can type or use voice input - just click the microphone icon!
                   </p>
                 </CardContent>
               </Card>
