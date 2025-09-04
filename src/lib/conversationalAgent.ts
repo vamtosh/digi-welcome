@@ -88,14 +88,17 @@ class ConversationalAgent {
 
   // Process user speech input
   async processUserSpeech(audioBlob: Blob): Promise<void> {
-    if (!this.state.isActive) return;
+    if (!this.state.isActive) {
+      console.log('ConversationalAgent: Not active, ignoring speech');
+      return;
+    }
 
     try {
-      console.log('Processing user speech, blob size:', audioBlob.size);
+      console.log('ConversationalAgent: Processing user speech, blob size:', audioBlob.size);
       
       // Check if audio blob is too small
       if (audioBlob.size < 1000) {
-        console.log('Audio blob too small, ignoring');
+        console.log('ConversationalAgent: Audio blob too small, ignoring');
         return;
       }
 
@@ -103,12 +106,12 @@ class ConversationalAgent {
       this.notifyStateChange();
 
       // Transcribe speech to text
-      console.log('Transcribing audio...');
+      console.log('ConversationalAgent: Transcribing audio...');
       const userSpeech = await whisperService.transcribeForGeneralInput(audioBlob);
-      console.log('Transcription result:', userSpeech);
+      console.log('ConversationalAgent: Transcription result:', userSpeech);
       
       if (!userSpeech || userSpeech.trim().length === 0) {
-        console.log('Empty transcription, ignoring');
+        console.log('ConversationalAgent: Empty transcription, ignoring');
         return;
       }
       
@@ -116,20 +119,21 @@ class ConversationalAgent {
       this.addMessage(userSpeech, true);
 
       // Understand context using GPT-4o
-      console.log('Understanding context...');
+      console.log('ConversationalAgent: Understanding context...');
       const understanding = await gptContextService.understandUserResponse(
         userSpeech,
         this.state.currentContext,
         this.state.conversationHistory
       );
 
-      console.log('Understanding result:', understanding);
+      console.log('ConversationalAgent: Understanding result:', understanding);
 
       // Process the understanding
       await this.processUnderstanding(understanding);
 
     } catch (error) {
-      console.error('Error processing user speech:', error);
+      console.error('ConversationalAgent: Error processing user speech:', error);
+      console.error('ConversationalAgent: Error stack:', error.stack);
       this.addMessage("Sorry, I had trouble understanding that. Could you please try again?", false);
       await this.speak("Sorry, I had trouble understanding that. Could you please try again?");
     } finally {

@@ -166,12 +166,15 @@ export function VoiceNavigation({
           const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
           console.log('Audio blob created:', audioBlob.size, 'bytes');
           
+          console.log('Calling conversationalAgent.processUserSpeech...');
           await conversationalAgent.processUserSpeech(audioBlob);
+          console.log('conversationalAgent.processUserSpeech completed successfully');
         } catch (error) {
           console.error('Error processing speech:', error);
+          console.error('Error details:', error);
           toast({
             title: 'Error',
-            description: 'Failed to process your speech. Please try again.',
+            description: `Failed to process your speech: ${error.message || 'Unknown error'}`,
             variant: 'destructive'
           });
         }

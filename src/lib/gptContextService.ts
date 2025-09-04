@@ -63,13 +63,20 @@ class GPTContextService {
     formContext: FormContext,
     conversationHistory: Message[] = []
   ): Promise<ContextUnderstandingResult> {
+    console.log('GPTContextService: Starting understandUserResponse');
+    console.log('GPTContextService: User speech:', userSpeech);
+    console.log('GPTContextService: Form context:', formContext);
+    
     if (!this.openai) {
+      console.error('GPTContextService: OpenAI not configured');
       throw new Error('OpenAI API key not configured');
     }
 
     try {
       const prompt = this.buildContextPrompt(userSpeech, formContext, conversationHistory);
+      console.log('GPTContextService: Built prompt:', prompt);
       
+      console.log('GPTContextService: Calling OpenAI API...');
       const response = await this.openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
@@ -86,7 +93,9 @@ class GPTContextService {
         response_format: { type: "json_object" }
       });
 
+      console.log('GPTContextService: Received response:', response);
       const result = JSON.parse(response.choices[0].message.content);
+      console.log('GPTContextService: Parsed result:', result);
       
       // Validate and enhance the result
       return this.validateAndEnhanceResult(result, formContext);
