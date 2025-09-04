@@ -33,8 +33,8 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="flex">
-            <div className="flex-1">
+          <div className="min-h-screen flex">
+            <main className="flex-1 w-0">
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/start" element={<Start />} />
@@ -48,7 +48,7 @@ const App = () => {
                 <Route path="/success" element={<Success />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </div>
+            </main>
             <ChatPanel onOpenSettings={() => setChatSettingsOpen(true)} />
           </div>
           <EscalationModal 

@@ -37,49 +37,64 @@ class OpenAIService {
   }
 
   async sendMessage(message: string, currentStep: string, conversationHistory: Message[]): Promise<string> {
-    if (!this.openai) {
+    if (!this.openai || !this.apiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Build conversation context
+    // Build conversation context from recent history
     const recentHistory = conversationHistory
-      .slice(-10) // Last 10 messages
-      .map(msg => `${msg.isUser ? 'User' : 'Assistant'}: ${msg.text}`)
-      .join('\n');
+      .slice(-8) // Last 8 messages to stay within token limits
+      .map(msg => ({
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.text
+      }));
 
     const systemPrompt = `You are a helpful AI assistant guiding users through a financial services onboarding process. 
 
-Current Step: ${currentStep}
+CURRENT STEP: ${currentStep}
 
-Knowledge Base:
-${this.knowledgeBase || 'No specific knowledge base provided. Use general financial services knowledge.'}
+KNOWLEDGE BASE:
+${this.knowledgeBase || 'Use general financial services knowledge for credit cards, KYC, PAN verification, address verification, CIBIL scores, and onboarding processes.'}
 
-Guidelines:
-- Be friendly, helpful, and concise
-- Provide step-specific guidance based on the current step
-- Answer questions about the onboarding process, financial products, and requirements
-- If you don't know something specific, acknowledge it and offer to help with what you do know
-- Keep responses under 150 words unless more detail is specifically requested
+GUIDELINES:
+- Be friendly, helpful, and conversational
+- Provide step-specific guidance based on the current step the user is on
+- Answer questions about the onboarding process, financial products, KYC requirements, and document verification
+- If the user seems stuck or confused, offer to guide them through the current step
+- Keep responses concise (under 200 words) but informative
+- Use a supportive tone and encourage the user through the process
+- If you don't know something specific from the knowledge base, use general financial services knowledge
 
-Recent conversation:
-${recentHistory}
-
-Respond to the user's message in a helpful and contextual manner.`;
+Focus on helping the user successfully complete their current step while being encouraging and supportive.`;
 
     try {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...recentHistory.slice(-5), // Include last 5 conversation turns
+        { role: 'user', content: message }
+      ];
+
       const completion = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        max_tokens: 300,
-        temperature: 0.7
+        messages: messages as any,
+        max_tokens: 400,
+        temperature: 0.7,
+        presence_penalty: 0.1,
+        frequency_penalty: 0.1
       });
 
-      return completion.choices[0]?.message?.content || 'Sorry, I could not process your request.';
-    } catch (error) {
+      return completion.choices[0]?.message?.content || 'Sorry, I could not process your request. Please try again.';
+    } catch (error: any) {
       console.error('OpenAI API Error:', error);
+      
+      // Re-throw with more specific error information
+      if (error?.status) {
+        const enhancedError = new Error(error.message);
+        (enhancedError as any).status = error.status;
+        (enhancedError as any).code = error.code;
+        throw enhancedError;
+      }
+      
       throw error;
     }
   }

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocation } from 'react-router-dom';
 import { openaiService } from '@/lib/openai';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
@@ -36,19 +37,33 @@ const getStepContext = (pathname: string) => {
 };
 
 export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Hi! I\'m here to help you through your application. Feel free to ask any questions!',
-      isUser: false,
-      timestamp: new Date()
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Load persisted messages from localStorage
+    const saved = localStorage.getItem('chat_messages');
+    if (saved) {
+      try {
+        return JSON.parse(saved).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+      } catch {
+        // If parsing fails, return default message
+      }
     }
-  ]);
+    return [
+      {
+        id: '1',
+        text: 'Hi! I\'m here to help you through your application. Feel free to ask any questions!',
+        isUser: false,
+        timestamp: new Date()
+      }
+    ];
+  });
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -56,6 +71,11 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('chat_messages', JSON.stringify(messages));
   }, [messages]);
 
   const handleSendMessage = async () => {
@@ -84,14 +104,34 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('OpenAI API Error:', error);
+      
+      let errorText = 'Sorry, I encountered an error. ';
+      
+      if (error?.status === 429) {
+        errorText = 'API quota exceeded. Please check your OpenAI billing in settings or try again later.';
+      } else if (error?.status === 401) {
+        errorText = 'Invalid API key. Please check your OpenAI API key in settings.';
+      } else if (!openaiService.getApiKey()) {
+        errorText = 'Please configure your OpenAI API key in settings to use the chat assistant.';
+      } else {
+        errorText += 'Please check your OpenAI API key and try again.';
+      }
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, I encountered an error. Please check your OpenAI API key in settings.',
+        text: errorText,
         isUser: false,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
+      
+      toast({
+        title: 'Chat Error',
+        description: errorText,
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -104,47 +144,27 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
     }
   };
 
-  if (!isOpen) {
-    return (
-      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50">
-        <Button
-          onClick={() => setIsOpen(true)}
-          size="lg"
-          className="rounded-full shadow-lg animate-pulse"
-        >
-          <MessageCircle className="h-5 w-5" />
-          <span className="ml-2">Need Help?</span>
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed right-0 top-0 h-full w-96 bg-background border-l shadow-xl z-40 flex flex-col">
-      <CardHeader className="border-b">
+    <aside className="w-96 bg-background border-l shadow-lg flex flex-col h-screen">
+      <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">AI Assistant</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              AI Assistant
+            </CardTitle>
             <Badge variant="secondary" className="mt-1 text-xs">
               {getStepContext(location.pathname).split(' - ')[0]}
             </Badge>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onOpenSettings}
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onOpenSettings}
+            className="hover:bg-primary/10"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
       </CardHeader>
 
@@ -205,6 +225,6 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
           </div>
         </div>
       </CardContent>
-    </div>
+    </aside>
   );
 }
