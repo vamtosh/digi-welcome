@@ -221,19 +221,23 @@ export function VoiceNavigation({
     }
   };
 
-  // Auto-stop recording after 10 seconds
+  // Auto-stop recording with dynamic timeout based on current field
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     if (isListening) {
+      // Longer timeout for address fields, shorter for others
+      const isAddressField = currentField === 'currentAddress' || currentField === 'permanentAddress';
+      const timeoutDuration = isAddressField ? 15000 : 5000; // 15s for address, 5s for others
+      
       timeoutId = setTimeout(() => {
-        console.log('Auto-stopping recording after timeout');
+        console.log(`Auto-stopping recording after ${timeoutDuration/1000}s timeout`);
         stopListening();
-      }, 10000); // 10 seconds
+      }, timeoutDuration);
     }
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [isListening]);
+  }, [isListening, currentField]);
 
   const toggleMute = () => {
     setIsMuted(!isMuted);

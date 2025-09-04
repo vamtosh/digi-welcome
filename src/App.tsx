@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { ChatPanel } from "./components/ChatPanel";
 import { ChatSettings } from "./components/ChatSettings";
 import { VoiceNavigationWrapper } from "./components/VoiceNavigationWrapper";
+import { ProgressBar } from "./components/ProgressBar";
 
 // Pages
 import Landing from "./pages/Landing";
@@ -34,6 +35,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ProgressBar />
           <VoiceNavigationWrapper>
             <div className="h-screen flex overflow-hidden">
               <main className="flex-1 w-0 overflow-auto">

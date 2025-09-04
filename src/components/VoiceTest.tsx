@@ -59,13 +59,13 @@ export function VoiceTest() {
       mediaRecorder.start();
       setIsRecording(true);
 
-      // Auto-stop after 5 seconds
+      // Auto-stop after 3 seconds for testing
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
           mediaRecorder.stop();
           setIsRecording(false);
         }
-      }, 5000);
+      }, 3000);
 
     } catch (error) {
       console.error('Recording error:', error);
@@ -108,7 +108,7 @@ export function VoiceTest() {
         {isRecording && (
           <div className="text-center text-red-600">
             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mx-auto mb-2"></div>
-            Recording... (auto-stops in 5 seconds)
+            Recording... (auto-stops in 3 seconds)
           </div>
         )}
 
