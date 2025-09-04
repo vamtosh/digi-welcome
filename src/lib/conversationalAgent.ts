@@ -245,6 +245,15 @@ class ConversationalAgent {
 
   // Page-specific conversation starters
   async startPageConversation(page: string): Promise<void> {
+    console.log('ConversationalAgent: Starting page conversation for:', page);
+    
+    // Ensure the agent remains active when changing pages
+    if (!this.state.isActive) {
+      console.log('ConversationalAgent: Agent was inactive, reactivating...');
+      this.state.isActive = true;
+      this.notifyStateChange();
+    }
+    
     const pageStarters = {
       '/': "Welcome to Tata Neu HDFC Bank! I'm here to help you apply for a credit card. Let's get started!",
       '/start': "Let's begin with your work type. Are you salaried, self-employed, or a student?",
@@ -260,6 +269,7 @@ class ConversationalAgent {
 
     const starter = pageStarters[page as keyof typeof pageStarters];
     if (starter) {
+      console.log('ConversationalAgent: Speaking page starter:', starter);
       await this.speak(starter);
       this.addMessage(starter, false);
     }

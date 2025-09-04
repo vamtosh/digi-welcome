@@ -237,10 +237,14 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
 
   // Update conversational agent context when location changes
   useEffect(() => {
+    console.log('VoiceNavigationWrapper: Page changed to:', location.pathname);
     const formContext = getFormContext();
+    console.log('VoiceNavigationWrapper: Form context:', formContext);
+    
     conversationalAgent.updateFormContext(formContext);
     
     // Start page-specific conversation
+    console.log('VoiceNavigationWrapper: Starting page conversation...');
     conversationalAgent.startPageConversation(location.pathname);
   }, [location.pathname]);
 
