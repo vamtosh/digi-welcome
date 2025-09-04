@@ -33,8 +33,8 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen flex">
-            <main className="flex-1 w-0">
+          <div className="h-screen flex overflow-hidden">
+            <main className="flex-1 w-0 overflow-auto">
               <Routes>
                 <Route path="/" element={<Landing />} />
                 <Route path="/start" element={<Start />} />

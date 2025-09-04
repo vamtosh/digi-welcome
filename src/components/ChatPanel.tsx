@@ -145,7 +145,7 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
   };
 
   return (
-    <aside className="w-96 bg-background border-l shadow-lg flex flex-col h-screen">
+    <aside className="w-96 bg-background border-l shadow-lg flex flex-col h-full">
       <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="flex items-center justify-between">
           <div>
@@ -168,8 +168,8 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4">
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+        <ScrollArea className="flex-1 p-4 h-0">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
