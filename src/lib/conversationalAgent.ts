@@ -68,12 +68,15 @@ class ConversationalAgent {
 
   // Start conversation
   async startConversation() {
+    console.log('ConversationalAgent: Starting conversation...');
     if (!gptContextService.isConfigured()) {
+      console.error('ConversationalAgent: GPT context service not configured');
       throw new Error('OpenAI API key not configured');
     }
 
     this.state.isActive = true;
     this.notifyStateChange();
+    console.log('ConversationalAgent: Conversation started, state:', this.state);
 
     // Start with welcome message
     await this.speak("Hi! I'm your personal assistant for this credit card application. I'll guide you through each step and answer any questions you have. Ready to get started?");

@@ -69,7 +69,9 @@ export function VoiceNavigation({
   }, [currentPage, currentField, formContext]);
 
   const startVoiceNavigation = async () => {
+    console.log('VoiceNavigation: Starting voice navigation...');
     if (!whisperService.isConfigured()) {
+      console.log('VoiceNavigation: Whisper service not configured');
       toast({
         title: 'Voice Navigation Unavailable',
         description: 'Please configure your OpenAI API key in settings to use voice navigation.',
@@ -78,15 +80,17 @@ export function VoiceNavigation({
       return;
     }
 
+    console.log('VoiceNavigation: Whisper service configured, starting conversation...');
     try {
       await conversationalAgent.startConversation();
       setIsActive(true);
+      console.log('VoiceNavigation: Voice navigation started successfully');
       toast({
         title: 'Voice Navigation Started',
         description: 'I\'m now listening and ready to help you through the form!'
       });
     } catch (error) {
-      console.error('Error starting voice navigation:', error);
+      console.error('VoiceNavigation: Error starting voice navigation:', error);
       toast({
         title: 'Error',
         description: 'Failed to start voice navigation. Please try again.',

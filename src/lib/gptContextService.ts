@@ -41,11 +41,18 @@ class GPTContextService {
     const savedKey = localStorage.getItem('openai_api_key');
     this.apiKey = savedKey || envKey || '';
     
+    console.log('GPTContextService: Initializing with API key:', this.apiKey ? 'Present' : 'Missing');
+    console.log('GPTContextService: Env key:', envKey ? 'Present' : 'Missing');
+    console.log('GPTContextService: Saved key:', savedKey ? 'Present' : 'Missing');
+    
     if (this.apiKey) {
       this.openai = new OpenAI({
         apiKey: this.apiKey,
         dangerouslyAllowBrowser: true
       });
+      console.log('GPTContextService: OpenAI client initialized');
+    } else {
+      console.log('GPTContextService: No API key found, OpenAI client not initialized');
     }
   }
 
