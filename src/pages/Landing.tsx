@@ -7,6 +7,7 @@ import { Globe, Sparkles } from "lucide-react";
 import { useOnboardingStore } from "@/lib/store";
 import { analytics } from "@/lib/analytics";
 import { Language } from "@/lib/types";
+import { VoiceTest } from "@/components/VoiceTest";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -142,6 +143,11 @@ export default function Landing() {
               {currentCopy.notNow}
             </Button>
           </div>
+        </div>
+
+        {/* Voice Test Component - Temporary for debugging */}
+        <div className="mt-8">
+          <VoiceTest />
         </div>
       </main>
     </div>
