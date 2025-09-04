@@ -271,11 +271,10 @@ class ConversationalAgent {
     }
     
     const pageStarters = {
-      '/': "Welcome to Tata Neu HDFC Bank! I'm here to help you apply for a credit card. Let's get started!",
+      '/': "Welcome to Tata Digital! I'm here to help you apply for a credit card. Let's get started!",
       '/start': "Let's begin with your work type. Are you salaried, self-employed, or a student?",
       '/pii/pan': "Now I need your PAN number for identity verification. You can speak it clearly or type it in.",
       '/pii/address': "I need your current address for verification and card delivery. Let's start with your house number and street name.",
-      '/kyc/selfie': "Now I need to verify your identity with a selfie. Please position your face clearly in the camera frame.",
       '/checks': "I'm running some background checks to verify your information. This usually takes 30-60 seconds.",
       '/offers': "Based on your profile, I have some great credit card options for you. Let me explain each one.",
       '/terms': "Before we finalize your application, I need to go through the terms and conditions with you.",
@@ -300,8 +299,7 @@ class ConversationalAgent {
       'perk': "What type of rewards interest you most? We have cashback, travel benefits, or shopping discounts.",
       'panNumber': "What's your PAN number? It's 10 characters - 5 letters, 4 numbers, and 1 letter.",
       'currentAddress': "What's your current address? Let's start with your house number and street name.",
-      'permanentAddress': "Is this also your permanent address, or do you have a different one?",
-      'selfie': "Please position your face clearly in the camera frame for identity verification."
+      'permanentAddress': "Is this also your permanent address, or do you have a different one?"
     };
 
     const conversation = fieldConversations[field as keyof typeof fieldConversations];

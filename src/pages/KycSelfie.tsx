@@ -24,7 +24,7 @@ interface KycSelfieProps {
 export default function KycSelfie({ onEscalate }: KycSelfieProps) {
   const navigate = useNavigate();
   const { setKyc } = useOnboardingStore();
-  const [step, setStep] = useState<'instructions' | 'capture' | 'processing' | 'result'>('instructions');
+  const [step, setStep] = useState<'capture' | 'processing' | 'result'>('capture');
   const [cameraActive, setCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [kycResult, setKycResult] = useState<any>(null);
@@ -129,7 +129,7 @@ export default function KycSelfie({ onEscalate }: KycSelfieProps) {
         currentStep={5}
         totalSteps={10}
         title="Identity Verification"
-        subtitle="Secure liveness check"
+        subtitle="Take a quick selfie"
         onEscalate={onEscalate}
       />
 
@@ -176,15 +176,6 @@ export default function KycSelfie({ onEscalate }: KycSelfieProps) {
                 </CardContent>
               </Card>
 
-              <Button
-                variant="hero"
-                size="xl"
-                className="w-full"
-                onClick={() => setStep('capture')}
-              >
-                <Camera className="h-5 w-5" />
-                Start Verification
-              </Button>
             </>
           )}
 

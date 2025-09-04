@@ -59,6 +59,10 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
       case 'next':
       case 'navigate_to_next_page':
       case 'proceed_to_next_step':
+      case 'ask_for_employment_details':
+      case 'proceed_with_application':
+      case 'start_application':
+      case 'begin_application':
         console.log('VoiceNavigationWrapper: Handling next navigation');
         handleNextPage(currentPage);
         break;
@@ -89,7 +93,9 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
       default:
         console.log('VoiceNavigationWrapper: Unknown navigation action:', action);
         // Try to handle common navigation patterns
-        if (action.includes('next') || action.includes('continue') || action.includes('proceed')) {
+        if (action.includes('next') || action.includes('continue') || action.includes('proceed') || 
+            action.includes('employment') || action.includes('application') || action.includes('start') ||
+            action.includes('begin') || action.includes('move') || action.includes('forward')) {
           console.log('VoiceNavigationWrapper: Interpreting as next navigation');
           handleNextPage(currentPage);
         } else if (action.includes('back') || action.includes('previous')) {
@@ -98,12 +104,15 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
         } else if (action.includes('skip')) {
           console.log('VoiceNavigationWrapper: Interpreting as skip navigation');
           handleSkipPage(currentPage);
-        } else if (action.includes('restart') || action.includes('start')) {
+        } else if (action.includes('restart')) {
           console.log('VoiceNavigationWrapper: Interpreting as restart navigation');
           navigate('/');
         } else if (action.includes('request') || action.includes('missing') || action.includes('clarification')) {
           console.log('VoiceNavigationWrapper: Interpreting as request for info - staying on current page');
           // Don't navigate, just stay on current page
+        } else {
+          console.log('VoiceNavigationWrapper: No pattern match found, defaulting to next page');
+          handleNextPage(currentPage);
         }
     }
   };
@@ -114,7 +123,6 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
       '/start',
       '/pii/pan',
       '/pii/address',
-      '/kyc/selfie',
       '/checks',
       '/offers',
       '/terms',
@@ -140,7 +148,6 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
       '/start',
       '/pii/pan',
       '/pii/address',
-      '/kyc/selfie',
       '/checks',
       '/offers',
       '/terms',
@@ -158,8 +165,8 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
     // Handle page-specific skip logic
     switch (currentPage) {
       case '/pii/address':
-        // Skip to KYC if address is not required
-        navigate('/kyc/selfie');
+        // Skip directly to background checks
+        navigate('/checks');
         break;
       default:
         handleNextPage(currentPage);
@@ -177,8 +184,6 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
         return 'panNumber';
       case '/pii/address':
         return 'currentAddress';
-      case '/kyc/selfie':
-        return 'selfie';
       case '/checks':
         return 'backgroundChecks';
       case '/offers':
@@ -201,7 +206,7 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
     
     // Calculate form progress
     const pageFlow = [
-      '/', '/start', '/pii/pan', '/pii/address', '/kyc/selfie',
+      '/', '/start', '/pii/pan', '/pii/address',
       '/checks', '/offers', '/terms', '/sign', '/success'
     ];
     const currentIndex = pageFlow.indexOf(currentPage);
@@ -230,8 +235,6 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
       case 'currentAddress':
       case 'permanentAddress':
         return 'address';
-      case 'selfie':
-        return 'image_capture';
       case 'cardSelection':
         return 'card_selection';
       case 'termsAcceptance':

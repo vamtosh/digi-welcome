@@ -14,7 +14,6 @@ import Landing from "./pages/Landing";
 import Start from "./pages/Start";
 import PanCapture from "./pages/PanCapture";
 import AddressCapture from "./pages/AddressCapture";
-import KycSelfie from "./pages/KycSelfie";
 import BackgroundChecks from "./pages/BackgroundChecks";
 import Offers from "./pages/Offers";
 import Terms from "./pages/Terms";
@@ -43,9 +42,8 @@ const App = () => {
                   <Route path="/" element={<Landing />} />
                   <Route path="/start" element={<Start />} />
                   <Route path="/pii/pan" element={<PanCapture onEscalate={() => setEscalationOpen(true)} />} />
-                  <Route path="/pii/address" element={<AddressCapture onEscalate={() => setEscalationOpen(true)} />} />
-                  <Route path="/kyc/selfie" element={<KycSelfie onEscalate={() => setEscalationOpen(true)} />} />
-                  <Route path="/checks" element={<BackgroundChecks onEscalate={() => setEscalationOpen(true)} />} />
+                                          <Route path="/pii/address" element={<AddressCapture onEscalate={() => setEscalationOpen(true)} />} />
+                        <Route path="/checks" element={<BackgroundChecks onEscalate={() => setEscalationOpen(true)} />} />
                   <Route path="/offers" element={<Offers onEscalate={() => setEscalationOpen(true)} />} />
                   <Route path="/terms" element={<Terms onEscalate={() => setEscalationOpen(true)} />} />
                   <Route path="/sign" element={<OtpSign onEscalate={() => setEscalationOpen(true)} />} />
