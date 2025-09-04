@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
+import { ChatPanel } from "./components/ChatPanel";
+import { ChatSettings } from "./components/ChatSettings";
 
 // Pages
 import Landing from "./pages/Landing";
@@ -23,6 +25,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [escalationOpen, setEscalationOpen] = useState(false);
+  const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -30,22 +33,31 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/start" element={<Start />} />
-            <Route path="/pii/pan" element={<PanCapture onEscalate={() => setEscalationOpen(true)} />} />
-            <Route path="/pii/address" element={<AddressCapture onEscalate={() => setEscalationOpen(true)} />} />
-            <Route path="/kyc/selfie" element={<KycSelfie onEscalate={() => setEscalationOpen(true)} />} />
-            <Route path="/checks" element={<BackgroundChecks onEscalate={() => setEscalationOpen(true)} />} />
-            <Route path="/offers" element={<Offers onEscalate={() => setEscalationOpen(true)} />} />
-            <Route path="/terms" element={<Terms onEscalate={() => setEscalationOpen(true)} />} />
-            <Route path="/sign" element={<OtpSign onEscalate={() => setEscalationOpen(true)} />} />
-            <Route path="/success" element={<Success />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <div className="flex">
+            <div className="flex-1">
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/start" element={<Start />} />
+                <Route path="/pii/pan" element={<PanCapture onEscalate={() => setEscalationOpen(true)} />} />
+                <Route path="/pii/address" element={<AddressCapture onEscalate={() => setEscalationOpen(true)} />} />
+                <Route path="/kyc/selfie" element={<KycSelfie onEscalate={() => setEscalationOpen(true)} />} />
+                <Route path="/checks" element={<BackgroundChecks onEscalate={() => setEscalationOpen(true)} />} />
+                <Route path="/offers" element={<Offers onEscalate={() => setEscalationOpen(true)} />} />
+                <Route path="/terms" element={<Terms onEscalate={() => setEscalationOpen(true)} />} />
+                <Route path="/sign" element={<OtpSign onEscalate={() => setEscalationOpen(true)} />} />
+                <Route path="/success" element={<Success />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <ChatPanel onOpenSettings={() => setChatSettingsOpen(true)} />
+          </div>
           <EscalationModal 
             open={escalationOpen} 
             onClose={() => setEscalationOpen(false)} 
+          />
+          <ChatSettings 
+            open={chatSettingsOpen}
+            onClose={() => setChatSettingsOpen(false)}
           />
         </BrowserRouter>
       </TooltipProvider>
