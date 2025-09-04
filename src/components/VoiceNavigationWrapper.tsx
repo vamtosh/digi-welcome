@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { VoiceNavigation } from './VoiceNavigation';
 import { conversationalAgent } from '../lib/conversationalAgent';
 import { useOnboardingStore } from '../lib/store';
+import { VoiceNavigationProvider } from '../contexts/VoiceNavigationContext';
 
 interface VoiceNavigationWrapperProps {
   children: React.ReactNode;
@@ -59,10 +59,6 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
       case 'next':
       case 'navigate_to_next_page':
       case 'proceed_to_next_step':
-      case 'ask_for_employment_details':
-      case 'proceed_with_application':
-      case 'start_application':
-      case 'begin_application':
         console.log('VoiceNavigationWrapper: Handling next navigation');
         handleNextPage(currentPage);
         break;
@@ -260,19 +256,16 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
   }, [location.pathname]);
 
   return (
-    <div className="relative">
-      {children}
-      
-      {/* Voice Navigation Panel */}
-      <div className="fixed bottom-4 left-4 z-50">
-        <VoiceNavigation
-          currentPage={location.pathname}
-          currentField={getCurrentField()}
-          onFormUpdate={handleFormUpdate}
-          onNavigation={handleNavigation}
-          formContext={getFormContext()}
-        />
+    <VoiceNavigationProvider
+      currentPage={location.pathname}
+      currentField={getCurrentField()}
+      onFormUpdate={handleFormUpdate}
+      onNavigation={handleNavigation}
+      formContext={getFormContext()}
+    >
+      <div className="relative">
+        {children}
       </div>
-    </div>
+    </VoiceNavigationProvider>
   );
 }

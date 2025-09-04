@@ -9,6 +9,8 @@ import { useLocation } from 'react-router-dom';
 import { openaiService } from '@/lib/openai';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { VoiceNavigation } from './VoiceNavigation';
+import { useVoiceNavigation } from '../contexts/VoiceNavigationContext';
 
 interface Message {
   id: string;
@@ -38,6 +40,9 @@ const getStepContext = (pathname: string) => {
 };
 
 export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
+  // Get voice navigation context
+  const voiceNav = useVoiceNavigation();
+  
   const [messages, setMessages] = useState<Message[]>(() => {
     // Load persisted messages from localStorage
     const saved = localStorage.getItem('chat_messages');
@@ -205,6 +210,17 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
           </div>
           <div ref={messagesEndRef} />
         </ScrollArea>
+
+        {/* Voice Navigation Section */}
+        <div className="border-t p-4">
+          <VoiceNavigation
+            currentPage={voiceNav.currentPage}
+            currentField={voiceNav.currentField}
+            onFormUpdate={voiceNav.onFormUpdate}
+            onNavigation={voiceNav.onNavigation}
+            formContext={voiceNav.formContext}
+          />
+        </div>
 
         <div className="border-t p-4">
           <div className="flex gap-2">
