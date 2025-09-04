@@ -81,6 +81,11 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
         console.log('VoiceNavigationWrapper: Handling restart navigation');
         navigate('/');
         break;
+      case 'request_missing_info':
+      case 'ask_for_clarification':
+        console.log('VoiceNavigationWrapper: Handling request for missing info - staying on current page');
+        // Don't navigate, just stay on current page for clarification
+        break;
       default:
         console.log('VoiceNavigationWrapper: Unknown navigation action:', action);
         // Try to handle common navigation patterns
@@ -96,6 +101,9 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
         } else if (action.includes('restart') || action.includes('start')) {
           console.log('VoiceNavigationWrapper: Interpreting as restart navigation');
           navigate('/');
+        } else if (action.includes('request') || action.includes('missing') || action.includes('clarification')) {
+          console.log('VoiceNavigationWrapper: Interpreting as request for info - staying on current page');
+          // Don't navigate, just stay on current page
         }
     }
   };

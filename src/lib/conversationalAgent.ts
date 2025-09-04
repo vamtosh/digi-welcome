@@ -91,6 +91,11 @@ class ConversationalAgent {
 
   // Process user speech input
   async processUserSpeech(audioBlob: Blob): Promise<void> {
+    console.log('ConversationalAgent: processUserSpeech called, isActive:', this.state.isActive);
+    
+    // Ensure agent is active before processing
+    this.ensureActive();
+    
     if (!this.state.isActive) {
       console.log('ConversationalAgent: Not active, ignoring speech');
       return;
@@ -141,6 +146,8 @@ class ConversationalAgent {
       await this.speak("Sorry, I had trouble understanding that. Could you please try again?");
     } finally {
       this.state.isListening = false;
+      // Ensure the agent remains active after processing
+      console.log('ConversationalAgent: Speech processing complete, maintaining active state:', this.state.isActive);
       this.notifyStateChange();
     }
   }
@@ -241,6 +248,15 @@ class ConversationalAgent {
   // Get current state
   getState(): ConversationState {
     return { ...this.state };
+  }
+
+  // Ensure agent remains active
+  ensureActive(): void {
+    if (!this.state.isActive) {
+      console.log('ConversationalAgent: Agent was inactive, reactivating...');
+      this.state.isActive = true;
+      this.notifyStateChange();
+    }
   }
 
   // Page-specific conversation starters
