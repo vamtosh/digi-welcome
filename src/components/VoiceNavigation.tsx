@@ -47,6 +47,10 @@ export function VoiceNavigation({
     conversationalAgent.setOnStateChange(setConversationState);
     conversationalAgent.setOnFormUpdate(onFormUpdate);
     conversationalAgent.setOnNavigation(onNavigation);
+    
+    console.log('VoiceNavigation: Set handlers for conversational agent');
+    console.log('onFormUpdate:', !!onFormUpdate);
+    console.log('onNavigation:', !!onNavigation);
 
     return () => {
       conversationalAgent.stopConversation();

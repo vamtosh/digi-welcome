@@ -52,24 +52,29 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
   // Handle navigation actions from voice commands
   const handleNavigation = (action: string) => {
     const currentPage = location.pathname;
+    console.log('VoiceNavigationWrapper: Received navigation action:', action, 'from page:', currentPage);
     
     switch (action) {
       case 'continue':
       case 'next':
+        console.log('VoiceNavigationWrapper: Handling next navigation');
         handleNextPage(currentPage);
         break;
       case 'back':
       case 'previous':
+        console.log('VoiceNavigationWrapper: Handling back navigation');
         handlePreviousPage(currentPage);
         break;
       case 'skip':
+        console.log('VoiceNavigationWrapper: Handling skip navigation');
         handleSkipPage(currentPage);
         break;
       case 'restart':
+        console.log('VoiceNavigationWrapper: Handling restart navigation');
         navigate('/');
         break;
       default:
-        console.log('Voice: Navigation action', action);
+        console.log('VoiceNavigationWrapper: Unknown navigation action:', action);
     }
   };
 
@@ -88,8 +93,14 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
     ];
     
     const currentIndex = pageFlow.indexOf(currentPage);
+    console.log('VoiceNavigationWrapper: Current page index:', currentIndex, 'for page:', currentPage);
+    
     if (currentIndex < pageFlow.length - 1) {
-      navigate(pageFlow[currentIndex + 1]);
+      const nextPage = pageFlow[currentIndex + 1];
+      console.log('VoiceNavigationWrapper: Navigating to next page:', nextPage);
+      navigate(nextPage);
+    } else {
+      console.log('VoiceNavigationWrapper: Already at last page');
     }
   };
 

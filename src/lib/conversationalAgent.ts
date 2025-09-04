@@ -163,13 +163,17 @@ class ConversationalAgent {
   }
 
   private async processUnderstanding(understanding: any): Promise<void> {
+    console.log('ConversationalAgent: Processing understanding:', understanding);
+    
     // Update form fields if needed
     if (understanding.formUpdates && Object.keys(understanding.formUpdates).length > 0) {
+      console.log('ConversationalAgent: Calling onFormUpdate with:', understanding.formUpdates);
       this.onFormUpdate?.(understanding.formUpdates);
     }
 
     // Handle navigation actions
     if (understanding.nextAction) {
+      console.log('ConversationalAgent: Calling onNavigation with:', understanding.nextAction);
       this.onNavigation?.(understanding.nextAction);
     }
 
