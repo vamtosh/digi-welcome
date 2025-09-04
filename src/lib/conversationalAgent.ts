@@ -1,5 +1,5 @@
 import { gptContextService } from './gptContextService';
-import { whisperService } from './whisperService';
+import { whisperService } from './whisper';
 
 interface FormContext {
   currentPage: string;
@@ -91,27 +91,46 @@ class ConversationalAgent {
     if (!this.state.isActive) return;
 
     try {
+      console.log('Processing user speech, blob size:', audioBlob.size);
+      
+      // Check if audio blob is too small
+      if (audioBlob.size < 1000) {
+        console.log('Audio blob too small, ignoring');
+        return;
+      }
+
       this.state.isListening = true;
       this.notifyStateChange();
 
       // Transcribe speech to text
+      console.log('Transcribing audio...');
       const userSpeech = await whisperService.transcribeForGeneralInput(audioBlob);
+      console.log('Transcription result:', userSpeech);
+      
+      if (!userSpeech || userSpeech.trim().length === 0) {
+        console.log('Empty transcription, ignoring');
+        return;
+      }
       
       // Add to conversation history
       this.addMessage(userSpeech, true);
 
       // Understand context using GPT-4o
+      console.log('Understanding context...');
       const understanding = await gptContextService.understandUserResponse(
         userSpeech,
         this.state.currentContext,
         this.state.conversationHistory
       );
 
+      console.log('Understanding result:', understanding);
+
       // Process the understanding
       await this.processUnderstanding(understanding);
 
     } catch (error) {
       console.error('Error processing user speech:', error);
+      this.addMessage("Sorry, I had trouble understanding that. Could you please try again?", false);
       await this.speak("Sorry, I had trouble understanding that. Could you please try again?");
     } finally {
       this.state.isListening = false;

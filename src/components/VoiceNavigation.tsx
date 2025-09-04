@@ -105,6 +105,21 @@ export function VoiceNavigation({
     if (!isActive) return;
 
     try {
+      // Check if whisper service is configured
+      if (!whisperService.isConfigured()) {
+        toast({
+          title: 'Configuration Required',
+          description: 'Please configure your OpenAI API key in settings first.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // For testing, let's also check if we can use Web Speech API as fallback
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        console.log('Web Speech API available as fallback');
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -116,8 +131,17 @@ export function VoiceNavigation({
       streamRef.current = stream;
       audioChunksRef.current = [];
 
+      // Check if MediaRecorder supports the mime type
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/mp4';
+        }
+      }
+
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: mimeType
       });
 
       mediaRecorderRef.current = mediaRecorder;
@@ -130,7 +154,14 @@ export function VoiceNavigation({
 
       mediaRecorder.onstop = async () => {
         try {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          if (audioChunksRef.current.length === 0) {
+            console.log('No audio data recorded');
+            return;
+          }
+
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+          console.log('Audio blob created:', audioBlob.size, 'bytes');
+          
           await conversationalAgent.processUserSpeech(audioBlob);
         } catch (error) {
           console.error('Error processing speech:', error);
@@ -142,8 +173,19 @@ export function VoiceNavigation({
         }
       };
 
-      mediaRecorder.start();
+      mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        toast({
+          title: 'Recording Error',
+          description: 'An error occurred while recording. Please try again.',
+          variant: 'destructive'
+        });
+        setIsListening(false);
+      };
+
+      mediaRecorder.start(100); // Collect data every 100ms
       setIsListening(true);
+      console.log('Recording started');
 
     } catch (error) {
       console.error('Error starting recording:', error);
@@ -159,6 +201,7 @@ export function VoiceNavigation({
     if (mediaRecorderRef.current && isListening) {
       mediaRecorderRef.current.stop();
       setIsListening(false);
+      console.log('Recording stopped');
       
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -166,6 +209,20 @@ export function VoiceNavigation({
       }
     }
   };
+
+  // Auto-stop recording after 10 seconds
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (isListening) {
+      timeoutId = setTimeout(() => {
+        console.log('Auto-stopping recording after timeout');
+        stopListening();
+      }, 10000); // 10 seconds
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isListening]);
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
@@ -313,6 +370,13 @@ export function VoiceNavigation({
             )}
           </div>
         )}
+
+        {/* Debug Info */}
+        <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+          <p>Status: {isActive ? 'Active' : 'Inactive'} | {isListening ? 'Listening' : 'Ready'}</p>
+          <p>API: {whisperService.isConfigured() ? 'Ready' : 'Not Configured'}</p>
+          <p>MediaRecorder: {MediaRecorder ? 'Supported' : 'Not Supported'}</p>
+        </div>
 
         {/* Recent Conversation */}
         {conversationState?.conversationHistory && conversationState.conversationHistory.length > 0 && (
