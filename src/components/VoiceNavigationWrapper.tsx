@@ -57,24 +57,46 @@ export function VoiceNavigationWrapper({ children }: VoiceNavigationWrapperProps
     switch (action) {
       case 'continue':
       case 'next':
+      case 'navigate_to_next_page':
+      case 'proceed_to_next_step':
         console.log('VoiceNavigationWrapper: Handling next navigation');
         handleNextPage(currentPage);
         break;
       case 'back':
       case 'previous':
+      case 'navigate_to_previous_page':
+      case 'go_back':
         console.log('VoiceNavigationWrapper: Handling back navigation');
         handlePreviousPage(currentPage);
         break;
       case 'skip':
+      case 'skip_current_step':
+      case 'skip_this_page':
         console.log('VoiceNavigationWrapper: Handling skip navigation');
         handleSkipPage(currentPage);
         break;
       case 'restart':
+      case 'start_over':
+      case 'begin_again':
         console.log('VoiceNavigationWrapper: Handling restart navigation');
         navigate('/');
         break;
       default:
         console.log('VoiceNavigationWrapper: Unknown navigation action:', action);
+        // Try to handle common navigation patterns
+        if (action.includes('next') || action.includes('continue') || action.includes('proceed')) {
+          console.log('VoiceNavigationWrapper: Interpreting as next navigation');
+          handleNextPage(currentPage);
+        } else if (action.includes('back') || action.includes('previous')) {
+          console.log('VoiceNavigationWrapper: Interpreting as back navigation');
+          handlePreviousPage(currentPage);
+        } else if (action.includes('skip')) {
+          console.log('VoiceNavigationWrapper: Interpreting as skip navigation');
+          handleSkipPage(currentPage);
+        } else if (action.includes('restart') || action.includes('start')) {
+          console.log('VoiceNavigationWrapper: Interpreting as restart navigation');
+          navigate('/');
+        }
     }
   };
 
