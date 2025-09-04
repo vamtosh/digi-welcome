@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,54 @@ interface PanCaptureProps {
   onEscalate: () => void;
 }
 
+// Web Speech API types
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+}
+
+interface SpeechRecognitionEvent {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+  message: string;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
 export default function PanCapture({ onEscalate }: PanCaptureProps) {
   const navigate = useNavigate();
   const { setPii } = useOnboardingStore();
@@ -37,8 +85,74 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'en-US';
+
+        recognitionRef.current.onresult = (event) => {
+          const transcript = event.results[0][0].transcript.toUpperCase();
+          // Clean the transcript to extract PAN-like pattern
+          const cleanedTranscript = transcript.replace(/[^A-Z0-9]/g, '');
+          
+          if (cleanedTranscript.length >= 10) {
+            // Take first 10 characters if longer
+            const panCandidate = cleanedTranscript.substring(0, 10);
+            setPanValue(panCandidate);
+            validatePan(panCandidate);
+            toast.success("Voice input captured!");
+          } else {
+            toast.error("Could not recognize a valid PAN. Please try again.");
+          }
+          setVoiceListening(false);
+        };
+
+        recognitionRef.current.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          let errorMessage = "Speech recognition failed. ";
+          
+          switch (event.error) {
+            case 'no-speech':
+              errorMessage += "No speech detected. Please try again.";
+              break;
+            case 'audio-capture':
+              errorMessage += "Microphone not accessible. Please check permissions.";
+              break;
+            case 'not-allowed':
+              errorMessage += "Microphone permission denied. Please allow microphone access.";
+              break;
+            default:
+              errorMessage += "Please try again.";
+          }
+          
+          toast.error(errorMessage);
+          setVoiceListening(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          setVoiceListening(false);
+        };
+      }
+    }
+  }, []);
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
 
   const validatePan = useCallback((pan: string) => {
     const valid = PAN_REGEX.test(pan);
@@ -55,17 +169,27 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
   };
 
   const startVoiceCapture = async () => {
-    setVoiceListening(true);
-    analytics.track('pan_capture_mode', { mode: 'voice' });
-    
-    // Simulate voice recognition
-    setTimeout(() => {
-      const mockPan = "ABCDE1234F";
-      setPanValue(mockPan);
-      validatePan(mockPan);
+    if (!recognitionRef.current) {
+      toast.error("Speech recognition not supported in this browser. Please use typing or camera instead.");
+      return;
+    }
+
+    try {
+      setVoiceListening(true);
+      analytics.track('pan_capture_mode', { mode: 'voice' });
+      recognitionRef.current.start();
+    } catch (error) {
+      console.error('Error starting speech recognition:', error);
+      toast.error("Failed to start voice recognition. Please try again.");
       setVoiceListening(false);
-      toast.success("Voice input captured successfully!");
-    }, 2000);
+    }
+  };
+
+  const stopVoiceCapture = () => {
+    if (recognitionRef.current && voiceListening) {
+      recognitionRef.current.stop();
+      setVoiceListening(false);
+    }
   };
 
   const startCamera = async () => {
@@ -242,11 +366,16 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
                       <p className="text-sm text-muted-foreground">
                         {voiceListening ? "Listening... Speak your PAN number clearly" : "Tap the microphone to speak your PAN"}
                       </p>
+                      {!voiceListening && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          💡 Tip: Say each letter and number clearly (e.g., "A B C D E 1 2 3 4 F")
+                        </p>
+                      )}
                     </div>
 
                     <Button
                       variant={voiceListening ? "destructive" : "default"}
-                      onClick={voiceListening ? () => setVoiceListening(false) : startVoiceCapture}
+                      onClick={voiceListening ? stopVoiceCapture : startVoiceCapture}
                       disabled={isLoading}
                     >
                       {voiceListening ? (
