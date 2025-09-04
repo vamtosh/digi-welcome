@@ -3,25 +3,54 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { useState } from "react";
+
+// Pages
+import Landing from "./pages/Landing";
+import Start from "./pages/Start";
+import PanCapture from "./pages/PanCapture";
+import AddressCapture from "./pages/AddressCapture";
+import KycSelfie from "./pages/KycSelfie";
+import BackgroundChecks from "./pages/BackgroundChecks";
+import Offers from "./pages/Offers";
+import Terms from "./pages/Terms";
+import OtpSign from "./pages/OtpSign";
+import Success from "./pages/Success";
 import NotFound from "./pages/NotFound";
+import { EscalationModal } from "./components/EscalationModal";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [escalationOpen, setEscalationOpen] = useState(false);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/start" element={<Start />} />
+            <Route path="/pii/pan" element={<PanCapture onEscalate={() => setEscalationOpen(true)} />} />
+            <Route path="/pii/address" element={<AddressCapture onEscalate={() => setEscalationOpen(true)} />} />
+            <Route path="/kyc/selfie" element={<KycSelfie onEscalate={() => setEscalationOpen(true)} />} />
+            <Route path="/checks" element={<BackgroundChecks onEscalate={() => setEscalationOpen(true)} />} />
+            <Route path="/offers" element={<Offers onEscalate={() => setEscalationOpen(true)} />} />
+            <Route path="/terms" element={<Terms onEscalate={() => setEscalationOpen(true)} />} />
+            <Route path="/sign" element={<OtpSign onEscalate={() => setEscalationOpen(true)} />} />
+            <Route path="/success" element={<Success />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <EscalationModal 
+            open={escalationOpen} 
+            onClose={() => setEscalationOpen(false)} 
+          />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
