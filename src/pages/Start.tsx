@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,17 +11,41 @@ import {
   CreditCard, 
   Plane, 
   ShoppingBag,
-  Sparkles 
+  Sparkles,
+  Mic
 } from "lucide-react";
 import { useOnboardingStore } from "@/lib/store";
 import { analytics } from "@/lib/analytics";
 import { WorkType, Perk } from "@/lib/types";
+import { conversationalAgent } from "@/lib/conversationalAgent";
 
 export default function Start() {
   const navigate = useNavigate();
   const { setProfile } = useOnboardingStore();
   const [workType, setWorkType] = useState<WorkType | null>(null);
   const [perk, setPerk] = useState<Perk | null>(null);
+  const [voiceActive, setVoiceActive] = useState(false);
+
+  // Handle voice navigation updates
+  useEffect(() => {
+    const handleVoiceUpdate = (updates: Record<string, any>) => {
+      if (updates.workType) {
+        setWorkType(updates.workType);
+        analytics.track('voice_work_type_selected', { workType: updates.workType });
+      }
+      if (updates.perk) {
+        setPerk(updates.perk);
+        analytics.track('voice_perk_selected', { perk: updates.perk });
+      }
+    };
+
+    // Listen for voice navigation updates
+    conversationalAgent.setOnFormUpdate(handleVoiceUpdate);
+
+    return () => {
+      conversationalAgent.setOnFormUpdate(undefined);
+    };
+  }, []);
 
   const workTypes = [
     { id: 'salaried' as WorkType, label: 'Salaried', icon: Briefcase, desc: 'Regular monthly income' },
@@ -64,6 +88,10 @@ export default function Start() {
               <p className="text-muted-foreground text-sm">
                 This helps us determine your eligibility
               </p>
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Mic className="h-3 w-3" />
+                <span>Say "Select salaried", "Choose self-employed", or "Pick student"</span>
+              </div>
             </div>
             
             <div className="grid gap-3">
@@ -106,6 +134,10 @@ export default function Start() {
               <p className="text-muted-foreground text-sm">
                 We'll recommend the best cards for your lifestyle
               </p>
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <Mic className="h-3 w-3" />
+                <span>Say "Select cashback", "Choose travel", or "Pick shopping"</span>
+              </div>
             </div>
             
             <div className="grid gap-3">

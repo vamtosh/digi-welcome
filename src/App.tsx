@@ -2,10 +2,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { ChatPanel } from "./components/ChatPanel";
 import { ChatSettings } from "./components/ChatSettings";
+import { VoiceNavigationWrapper } from "./components/VoiceNavigationWrapper";
 
 // Pages
 import Landing from "./pages/Landing";
@@ -33,24 +34,26 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="h-screen flex overflow-hidden">
-            <main className="flex-1 w-0 overflow-auto">
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/start" element={<Start />} />
-                <Route path="/pii/pan" element={<PanCapture onEscalate={() => setEscalationOpen(true)} />} />
-                <Route path="/pii/address" element={<AddressCapture onEscalate={() => setEscalationOpen(true)} />} />
-                <Route path="/kyc/selfie" element={<KycSelfie onEscalate={() => setEscalationOpen(true)} />} />
-                <Route path="/checks" element={<BackgroundChecks onEscalate={() => setEscalationOpen(true)} />} />
-                <Route path="/offers" element={<Offers onEscalate={() => setEscalationOpen(true)} />} />
-                <Route path="/terms" element={<Terms onEscalate={() => setEscalationOpen(true)} />} />
-                <Route path="/sign" element={<OtpSign onEscalate={() => setEscalationOpen(true)} />} />
-                <Route path="/success" element={<Success />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <ChatPanel onOpenSettings={() => setChatSettingsOpen(true)} />
-          </div>
+          <VoiceNavigationWrapper>
+            <div className="h-screen flex overflow-hidden">
+              <main className="flex-1 w-0 overflow-auto">
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/start" element={<Start />} />
+                  <Route path="/pii/pan" element={<PanCapture onEscalate={() => setEscalationOpen(true)} />} />
+                  <Route path="/pii/address" element={<AddressCapture onEscalate={() => setEscalationOpen(true)} />} />
+                  <Route path="/kyc/selfie" element={<KycSelfie onEscalate={() => setEscalationOpen(true)} />} />
+                  <Route path="/checks" element={<BackgroundChecks onEscalate={() => setEscalationOpen(true)} />} />
+                  <Route path="/offers" element={<Offers onEscalate={() => setEscalationOpen(true)} />} />
+                  <Route path="/terms" element={<Terms onEscalate={() => setEscalationOpen(true)} />} />
+                  <Route path="/sign" element={<OtpSign onEscalate={() => setEscalationOpen(true)} />} />
+                  <Route path="/success" element={<Success />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <ChatPanel onOpenSettings={() => setChatSettingsOpen(true)} />
+            </div>
+          </VoiceNavigationWrapper>
           <EscalationModal 
             open={escalationOpen} 
             onClose={() => setEscalationOpen(false)} 

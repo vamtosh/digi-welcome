@@ -21,6 +21,7 @@ import { useOnboardingStore } from "@/lib/store";
 import { analytics } from "@/lib/analytics";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { conversationalAgent } from "@/lib/conversationalAgent";
 
 interface PanCaptureProps {
   onEscalate: () => void;
@@ -87,6 +88,24 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Handle voice navigation updates
+  useEffect(() => {
+    const handleVoiceUpdate = (updates: Record<string, any>) => {
+      if (updates.panNumber) {
+        setPanValue(updates.panNumber);
+        validatePan(updates.panNumber);
+        analytics.track('voice_pan_entered', { pan: updates.panNumber });
+      }
+    };
+
+    // Listen for voice navigation updates
+    conversationalAgent.setOnFormUpdate(handleVoiceUpdate);
+
+    return () => {
+      conversationalAgent.setOnFormUpdate(undefined);
+    };
+  }, []);
 
   const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 
