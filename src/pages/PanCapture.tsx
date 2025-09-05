@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ProgressHeader } from "@/components/ProgressHeader";
+import { HybridInput } from "@/components/HybridInput";
 import { 
   Keyboard, 
   Mic, 
@@ -20,6 +21,7 @@ import { useOnboardingStore } from "@/lib/store";
 import { analytics } from "@/lib/analytics";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { conversationalAgent } from "@/lib/conversationalAgent";
 
 interface PanCaptureProps {
   onEscalate: () => void;
@@ -86,6 +88,24 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Handle voice navigation updates
+  useEffect(() => {
+    const handleVoiceUpdate = (updates: Record<string, any>) => {
+      if (updates.panNumber) {
+        setPanValue(updates.panNumber);
+        validatePan(updates.panNumber);
+        analytics.track('voice_pan_entered', { pan: updates.panNumber });
+      }
+    };
+
+    // Listen for voice navigation updates
+    conversationalAgent.setOnFormUpdate(handleVoiceUpdate);
+
+    return () => {
+      conversationalAgent.setOnFormUpdate(undefined);
+    };
+  }, []);
 
   const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 
@@ -321,11 +341,11 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
                 <CardContent className="p-6 space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="pan">PAN Number</Label>
-                    <Input
-                      id="pan"
+                    <HybridInput
                       value={panValue}
-                      onChange={(e) => handlePanChange(e.target.value)}
-                      placeholder="ABCDE1234F"
+                      onChange={handlePanChange}
+                      placeholder="Type or speak your PAN (ABCDE1234F)"
+                      mode="pan"
                       className={`font-mono ${isValid ? 'border-success' : panValue ? 'border-destructive' : ''}`}
                     />
                     {panValue && (
@@ -346,6 +366,8 @@ export default function PanCapture({ onEscalate }: PanCaptureProps) {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Format: 5 letters + 4 numbers + 1 letter (e.g., ABCDE1234F)
+                    <br />
+                    💡 You can type or use voice input - just click the microphone icon!
                   </p>
                 </CardContent>
               </Card>

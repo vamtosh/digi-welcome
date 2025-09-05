@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -10,8 +11,9 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog';
-import { Upload, Key, FileText, Save } from 'lucide-react';
+import { Upload, Key, FileText, Save, Mic, CheckCircle, AlertCircle } from 'lucide-react';
 import { openaiService } from '@/lib/openai';
+import { whisperService } from '@/lib/whisper';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatSettingsProps {
@@ -20,13 +22,34 @@ interface ChatSettingsProps {
 }
 
 export function ChatSettings({ open, onClose }: ChatSettingsProps) {
-  const [apiKey, setApiKey] = useState(openaiService.getApiKey());
-  const [knowledgeBase, setKnowledgeBase] = useState(openaiService.getKnowledgeBase());
+  const [apiKey, setApiKey] = useState('');
+  const [knowledgeBase, setKnowledgeBase] = useState('');
+  const [envApiKey, setEnvApiKey] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Load settings on mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('openai_api_key') || '';
+    const savedKnowledgeBase = localStorage.getItem('knowledge_base') || '';
+    const envKey = import.meta.env.VITE_OPENAI_API_KEY || '';
+    
+    setApiKey(savedApiKey);
+    setKnowledgeBase(savedKnowledgeBase);
+    setEnvApiKey(envKey);
+    
+    // Initialize services with saved or env key
+    const keyToUse = savedApiKey || envKey;
+    if (keyToUse) {
+      openaiService.setApiKey(keyToUse);
+      whisperService.setApiKey(keyToUse);
+    }
+  }, []);
+
   const handleSave = () => {
-    openaiService.setApiKey(apiKey);
+    const keyToUse = apiKey || envApiKey;
+    openaiService.setApiKey(keyToUse);
+    whisperService.setApiKey(keyToUse);
     openaiService.setKnowledgeBase(knowledgeBase);
     
     // Save to localStorage for persistence
@@ -57,21 +80,6 @@ export function ChatSettings({ open, onClose }: ChatSettingsProps) {
     reader.readAsText(file);
   };
 
-  // Load saved settings on mount
-  useState(() => {
-    const savedApiKey = localStorage.getItem('openai_api_key');
-    const savedKnowledgeBase = localStorage.getItem('knowledge_base');
-    
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      openaiService.setApiKey(savedApiKey);
-    }
-    
-    if (savedKnowledgeBase) {
-      setKnowledgeBase(savedKnowledgeBase);
-      openaiService.setKnowledgeBase(savedKnowledgeBase);
-    }
-  });
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -101,8 +109,42 @@ export function ChatSettings({ open, onClose }: ChatSettingsProps) {
               onChange={(e) => setApiKey(e.target.value)}
               className="font-mono"
             />
+            {envApiKey && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                Environment variable detected: {envApiKey.substring(0, 8)}...
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
-              Your API key is stored locally in your browser and used only for chat requests.
+              Your API key is stored locally in your browser and used for both chat and voice input.
+            </p>
+          </div>
+
+          {/* Voice Input Status */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Mic className="h-4 w-4" />
+              Voice Input Status
+            </Label>
+            <div className="flex items-center gap-2">
+              {whisperService.isConfigured() ? (
+                <>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <Badge variant="secondary" className="text-green-700 bg-green-100">
+                    Whisper API Ready
+                  </Badge>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-4 w-4 text-orange-500" />
+                  <Badge variant="secondary" className="text-orange-700 bg-orange-100">
+                    Configure API Key
+                  </Badge>
+                </>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Voice input uses OpenAI's Whisper API for high-quality speech recognition.
             </p>
           </div>
 

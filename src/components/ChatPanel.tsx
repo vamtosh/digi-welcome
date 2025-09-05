@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { HybridInput } from '@/components/HybridInput';
 import { useLocation } from 'react-router-dom';
 import { openaiService } from '@/lib/openai';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { VoiceNavigation } from './VoiceNavigation';
+import { useVoiceNavigation } from '../contexts/VoiceNavigationContext';
 
 interface Message {
   id: string;
@@ -37,6 +40,9 @@ const getStepContext = (pathname: string) => {
 };
 
 export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
+  // Get voice navigation context
+  const voiceNav = useVoiceNavigation();
+  
   const [messages, setMessages] = useState<Message[]>(() => {
     // Load persisted messages from localStorage
     const saved = localStorage.getItem('chat_messages');
@@ -205,14 +211,26 @@ export function ChatPanel({ onOpenSettings }: ChatPanelProps) {
           <div ref={messagesEndRef} />
         </ScrollArea>
 
+        {/* Voice Navigation Section */}
+        <div className="border-t p-4">
+          <VoiceNavigation
+            currentPage={voiceNav.currentPage}
+            currentField={voiceNav.currentField}
+            onFormUpdate={voiceNav.onFormUpdate}
+            onNavigation={voiceNav.onNavigation}
+            formContext={voiceNav.formContext}
+          />
+        </div>
+
         <div className="border-t p-4">
           <div className="flex gap-2">
-            <Input
+            <HybridInput
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={setInputValue}
               onKeyPress={handleKeyPress}
               placeholder="Ask me anything..."
               disabled={isLoading}
+              mode="general"
               className="flex-1"
             />
             <Button

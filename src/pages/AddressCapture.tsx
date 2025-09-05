@@ -126,7 +126,7 @@ export default function AddressCapture({ onEscalate }: AddressCaptureProps) {
     };
     
     setPii(addressData);
-    navigate('/kyc/selfie');
+    navigate('/checks');
   };
 
   const AddressForm = ({ address, onChange, type, title }: {
